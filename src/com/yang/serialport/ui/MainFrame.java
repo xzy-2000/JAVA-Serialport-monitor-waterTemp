@@ -306,7 +306,7 @@ public class MainFrame extends JFrame {
 						// 以字符串的形式接收数据
 						if (mDataASCIIChoice.isSelected()) {
 							mDataView.append(new String(data) + "\r\n");
-							lo.getTemp(new String(data));
+							lo.getInfo(new String(data));
 							lo.repaint();
 						}
 
@@ -381,16 +381,14 @@ public class MainFrame extends JFrame {
 
 
 class  dp extends JPanel{
-	 int TargetTemperature = 600;
+	 String TargetTemperature = "600";
+	 String lowTarget = "500";
+	 String llowTarget = "400";
 	 int Max=600;
 	 ArrayList<temp> tp = new ArrayList<temp>();
 	 Date startData = null;
-	 Date maxData = null;
 	 boolean op = false;
-	 String i = new String ("");
-	 boolean flag = false;
-	 String l =new String("");
-	 
+	 String i = new String ("");	 
 		public void paint (Graphics g) {
 		super.paint(g);
 		this.pxy(g);
@@ -400,9 +398,8 @@ class  dp extends JPanel{
 	
 	
 public void analyse(Graphics g){
-if(op==false){
-g.drawString("小哥哥，水温不在监控范围，或未开启本系统", 30, 320);
-
+    if(op==false){
+g.drawString("本系统尚未开启", 30, 320);
 } 
 else {
 	Date dat = new Date();
@@ -411,7 +408,7 @@ else {
   g.drawString("本次加热开始时间 : "+i, 30, 320);
   long time =(dat.getTime()-startData.getTime())/1000;
   g.drawString("本次加热共持续 ：   " + time +" s", 30, 340);
- g.drawString("系统超调量 "+ (float)(Max-600)/100.00, 30, 360);
+ g.drawString("系统超调量 "+ (float)(Max-600)/10.00, 30, 360);
 }
 
 
@@ -419,43 +416,41 @@ else {
 
 	
 	
-public void	getTemp(String a){
-		try {
-			if(a.equals("z")) if(!l.equals("")) {
-				int d = Integer.parseInt(l);		
+public void	getInfo(String a){
+	         System.out.println(a);
+	           char ch=a.charAt(0);	
+			   if(ch == 'a') {
+				a= a.substring(1, 4);
+				System.out.println(a);
+				int d = Integer.parseInt(a);
 				Date date = new Date();
-				temp mp = new temp(date , d);
-				int pst;
+				temp mp = new temp(date, d);
 				if(d>Max) Max=d;
-				if(tp.size()>0&&d>400)if(Math.abs(d-(tp.get(tp.size()-1).getTemp()))<20) tp.add(mp);	
-				if(tp.size()==0&&d>400)tp.add(mp);
-				if(op==false) {
-					startData = date;
-					op=true;
+				if(d>Integer.parseInt(llowTarget)) tp.add(mp);		
+				if(op==false) startData=date;
+				op=true;
 				}
-
-				l="";flag=false;	
-				}
-					
-			if(flag==true) {
-			l=l+a;	
-		}
-
-			if(a.equals("a")) {flag=true;}	
-			System.out.println(l);
-		} catch (NumberFormatException e) {
-		    e.printStackTrace();
-		}
-			
-			
+			   if(ch=='b') {
+				a= a.substring(1, 4); 
+				int d = Integer.parseInt(a);
+				lowTarget  = Integer.toString(d-100);
+				llowTarget = Integer.toString(d-200);
+				TargetTemperature = a;
+			   }
+		
+			   
 	}
+
 
 public void pw(Graphics g) {
 	for(int i = 0;i<tp.size()-1;i++){
-	g.drawLine(i*3+33,(int)(720-1.1*tp.get(i).getTemp()), i*3+36,(int)(720-1.1*tp.get(i+1).getTemp()));
+	g.drawLine(i*3+33,(int)(322+Integer.parseInt(llowTarget)-1.1*tp.get(i).getTemp()), i*3+36,(int)(322+Integer.parseInt(llowTarget)-1.1*tp.get(i+1).getTemp()));
 	}
 	}
-	
+
+
+
+
 public void pxy(Graphics g) {
 		Graphics2D g2=(Graphics2D)g;
 		Stroke stroke=new BasicStroke(3.0f);//设置线宽为3.0
@@ -465,9 +460,12 @@ public void pxy(Graphics g) {
 		g.drawLine(30, 60, 35, 60);
 		g.drawLine(30, 170, 35, 170);
 		g.drawLine(30, 280, 35, 280);
-		g.drawString("60", 10,60);
-		g.drawString("50", 10,170);
-		g.drawString("40", 10,280);
+		g.drawString(TargetTemperature.substring(0, 2)+"."+TargetTemperature.charAt(2), 4,60);
+		g.drawString(lowTarget.substring(0, 2)+"."+lowTarget.charAt(2), 4,170);
+		g.drawString(llowTarget.substring(0, 2)+"."+llowTarget.charAt(2), 4,280);
+		stroke=new BasicStroke(1.0f);//设置线宽为3.0
+		g2.setStroke(stroke);
+		g.drawString("目标设置温度:"+TargetTemperature.substring(0, 2)+"."+TargetTemperature.charAt(2), 130,20);
 	}	
 }
 
